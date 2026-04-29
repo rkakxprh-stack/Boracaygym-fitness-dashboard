@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FIT PROCESS — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" onerror="this.remove()">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg0: #0a0a0c;
+  --bg1: #111114;
+  --bg2: #18181d;
+  --bg3: #222228;
+  --bg4: #2c2c34;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #c8f135;
+  --accent2: #8bff6b;
+  --accent3: #36d6ff;
+  --red: #ff4d6d;
+  --amber: #ffb347;
+  --muted: #5a5a6e;
+  --text2: #9898a8;
+  --text1: #d4d4e0;
+  --text0: #f0f0f8;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font-display: 'Bebas Neue', 'Arial Black', sans-serif;
+  --font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  background: var(--bg0);
+  color: var(--text1);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+button { cursor: pointer; font-family: var(--font-body); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+input, select { -webkit-tap-highlight-color: transparent; }
+input, select, textarea { font-family: var(--font-body); -webkit-appearance: none; appearance: none; border-radius: 0; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+/* SCREENS */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+
+/* ──────────────────────────────────────────
+   LOGIN SCREEN
+────────────────────────────────────────── */
+#loginScreen {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg0);
+  position: relative;
+  overflow: hidden;
+}
+#loginScreen.active { display: flex; }
+.login-bg {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+}
+.login-bg-line {
+  position: absolute; width: 1px; background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+  opacity: 0.15; animation: lineFall 4s linear infinite;
+}
+@keyframes lineFall {
+  0% { transform: translateY(-100%); opacity: 0; }
+  20% { opacity: 0.15; }
+  80% { opacity: 0.15; }
+  100% { transform: translateY(200%); opacity: 0; }
+}
+.login-wrap {
+  position: relative; z-index: 1; width: 100%; max-width: 420px; padding: 2rem;
+}
+.login-logo {
+  font-family: var(--font-display);
+  font-size: 3.5rem; letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+.login-sub {
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 2.5rem;
+  font-family: var(--font-mono);
+}
+.login-card {
+  background: var(--bg1);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 2rem;
+}
+.login-card h2 {
+  font-size: 1rem; font-weight: 500; color: var(--text0);
+  margin-bottom: 1.5rem;
+}
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 0.75rem; color: var(--text2); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+.field input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+  color: var(--text0); font-size: 1rem; outline: none;
+  transition: border-color 0.2s;
+}
+.field input:focus { border-color: var(--accent); }
+.btn-primary {
+  width: 100%; background: var(--accent); color: #0a0a0c;
+  border: none; border-radius: var(--radius-sm); padding: 0.875rem;
+  font-size: 0.9rem; font-weight: 700; letter-spacing: 0.05em;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 0.5rem;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.login-note { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 1rem; line-height: 1.6; }
+
+/* ──────────────────────────────────────────
+   MAIN APP
+────────────────────────────────────────── */
+#appScreen { min-height: 100vh; }
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,12,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.header-logo { font-family: var(--font-display); font-size: 1.5rem; color: var(--accent); letter-spacing: 0.05em; }
+.header-user { display: flex; align-items: center; gap: 0.75rem; }
+.header-user-name { font-size: 0.8rem; color: var(--text2); }
+.btn-logout {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 0.35rem 0.75rem;
+  color: var(--text2); font-size: 0.75rem;
+  transition: color 0.2s, border-color 0.2s;
+}
+.btn-logout:hover { color: var(--red); border-color: var(--red); }
+
+/* TAB NAV */
+.tab-nav {
+  display: flex; background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.tab-nav::-webkit-scrollbar { height: 0; }
+.tab-btn {
+  flex-shrink: 0; background: none; border: none;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.8rem; color: var(--muted);
+  letter-spacing: 0.05em; border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* TAB PANELS */
+.tab-panel { display: none; padding: 1.25rem 1rem 5rem; max-width: 800px; margin: 0 auto; }
+.tab-panel.active { display: block; }
+
+/* SECTION HEADING */
+.sec-head {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-display); font-size: 1.4rem;
+  color: var(--text0); letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+.sec-head::before {
+  content: ''; display: block; width: 3px; height: 1.2rem;
+  background: var(--accent); border-radius: 2px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.card-title { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+
+/* STAT GRID */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0.875rem 0.75rem;
+  text-align: center;
+}
+.stat-val { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 500; color: var(--accent); }
+.stat-lbl { font-size: 0.65rem; color: var(--muted); margin-top: 0.25rem; }
+
+/* FORM */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+  font-size: 0.7rem; color: var(--text2); letter-spacing: 0.05em;
+  display: flex; justify-content: space-between;
+}
+.form-group label span { color: var(--muted); }
+.form-input { border-radius: var(--radius-sm) !important;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 0.65rem 0.75rem;
+  color: var(--text0); font-size: 0.9rem; outline: none;
+  transition: border-color 0.2s; width: 100%;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-section { margin-bottom: 1.25rem; }
+.form-section-title {
+  font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+}
+.btn-save {
+  width: 100%; background: var(--accent); color: #0a0a0c;
+  border: none; border-radius: var(--radius-sm); padding: 0.875rem;
+  font-size: 0.9rem; font-weight: 700; letter-spacing: 0.05em;
+  transition: opacity 0.2s; margin-top: 0.5rem;
+}
+.btn-save:active { opacity: 0.85; }
+
+/* STREAK CALENDAR */
+.calendar-wrap { overflow-x: auto; }
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(36px, 1fr));
+  gap: 4px; min-width: 280px;
+}
+.cal-day-header { font-size: 0.6rem; color: var(--muted); text-align: center; padding: 4px 0; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 0.65rem;
+  position: relative; cursor: default;
+}
+.cal-day.empty { background: transparent; }
+.cal-day.future { background: var(--bg3); color: var(--muted); }
+.cal-day.no-data { background: var(--bg3); color: var(--muted); border: 1px dashed rgba(255,255,255,0.1); }
+.cal-day.partial { background: rgba(200,241,53,0.15); color: var(--accent); border: 1px solid rgba(200,241,53,0.3); }
+.cal-day.full { background: rgba(200,241,53,0.25); color: var(--accent); border: 1px solid var(--accent); }
+.cal-day.today { box-shadow: 0 0 0 2px var(--accent); }
+.cal-dot { position: absolute; bottom: 3px; right: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+/* CHART WRAP */
+.chart-wrap { position: relative; width: 100%; }
+
+/* CORRELATION GRID */
+.corr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+/* HISTORY TABLE */
+.history-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.history-table th {
+  text-align: left; padding: 0.5rem; color: var(--muted);
+  border-bottom: 1px solid var(--border); font-weight: 400;
+}
+.history-table td { padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.history-table tr:last-child td { border-bottom: none; }
+.no-data-msg { text-align: center; color: var(--muted); padding: 2rem; font-size: 0.85rem; }
+
+/* BADGE */
+.badge {
+  display: inline-block; font-size: 0.65rem; padding: 0.2rem 0.5rem;
+  border-radius: 4px; font-family: var(--font-mono);
+}
+.badge-green { background: rgba(139,255,107,0.1); color: var(--accent2); }
+.badge-red { background: rgba(255,77,109,0.1); color: var(--red); }
+.badge-amber { background: rgba(255,179,71,0.1); color: var(--amber); }
+
+/* PROGRESS BAR */
+.progress-bar-wrap { background: var(--bg3); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+
+/* BOTTOM TOOLBAR */
+.bottom-toolbar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(10,10,12,0.95); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  display: flex; gap: 0.5rem; justify-content: center;
+}
+.btn-secondary {
+  flex: 1; max-width: 180px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 0.6rem;
+  color: var(--text2); font-size: 0.75rem;
+  transition: color 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover { color: var(--accent3); border-color: var(--accent3); }
+
+/* TOAST */
+.toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 0.75rem 1.25rem;
+  font-size: 0.85rem; color: var(--text0);
+  z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--accent); color: var(--accent); }
+.toast.error { border-color: var(--red); color: var(--red); }
+
+/* MISSING ALERT */
+.missing-alert {
+  background: rgba(255,179,71,0.08); border: 1px solid rgba(255,179,71,0.2);
+  border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+  font-size: 0.8rem; color: var(--amber); margin-bottom: 1rem;
+  display: flex; align-items: flex-start; gap: 0.5rem;
+}
+.missing-icon { flex-shrink: 0; font-size: 1rem; }
+
+/* MOOD SLIDER */
+.mood-row { display: flex; align-items: center; gap: 0.75rem; }
+.mood-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; background: var(--bg4); }
+.mood-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+.mood-val { font-family: var(--font-mono); font-size: 1rem; color: var(--accent); min-width: 24px; text-align: right; }
+
+/* DATE PICKER HEADER */
+.date-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.date-display {
+  font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent);
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 0.4rem 0.75rem;
+}
+.btn-date-nav {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 0.4rem 0.75rem;
+  color: var(--text2); font-size: 0.8rem;
+  transition: color 0.2s;
+}
+.btn-date-nav:hover { color: var(--text0); }
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+  .corr-grid { grid-template-columns: 1fr; }
+  .login-logo { font-size: 2.8rem; }
+}
+
+/* CHART LEGEND */
+.chart-legend {
+  display: flex; flex-wrap: wrap; gap: 0.75rem;
+  margin-bottom: 0.75rem; padding: 0 0.25rem;
+}
+.legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* INBODY TREND */
+.trend-up { color: var(--red); }
+.trend-down { color: var(--accent2); }
+.trend-same { color: var(--muted); }
+
+/* STREAK COUNT */
+.streak-hero {
+  text-align: center; padding: 1rem 0 0.5rem;
+}
+.streak-number {
+  font-family: var(--font-display); font-size: 5rem;
+  color: var(--accent); line-height: 1;
+}
+.streak-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; margin-top: 0.25rem; }
+
+/* SEGMENT BUTTONS */
+.seg-wrap {
+  display: flex; gap: 0.5rem; margin-bottom: 0.75rem;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px;
+}
+.seg-wrap::-webkit-scrollbar { height: 0; }
+.seg-btn {
+  flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 0.45rem 0.9rem;
+  color: var(--text2); font-size: 0.78rem;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.seg-btn.active {
+  background: var(--accent); color: #0a0a0c;
+  border-color: var(--accent); font-weight: 700;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="screen active">
+  <div class="login-bg" id="loginBg"></div>
+  <div class="login-wrap">
+    <div class="login-logo">FIT<br>PROCESS</div>
+    <div class="login-sub">Personal Training Dashboard</div>
+    <div class="login-card">
+      <h2>개인 대시보드 시작</h2>
+      <div class="field">
+        <label>이름</label>
+        <input type="text" id="loginName" placeholder="홍길동" maxlength="20" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>생년월일 앞 6자리</label>
+        <input type="text" id="loginBirth" placeholder="예: 950101" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">대시보드 시작 →</button>
+      <div class="login-note">별도 가입 없이 이름+생년월일로 개인 공간이 생성됩니다.<br>같은 기기에서 데이터가 자동 저장됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appScreen" class="screen">
+  <header class="app-header">
+    <div class="header-logo">FIT PROCESS</div>
+    <div class="header-user">
+      <div class="header-user-name" id="headerUserName"></div>
+      <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 대시보드</button>
+    <button class="tab-btn" onclick="switchTab('input')">✏️ 오늘 기록</button>
+    <button class="tab-btn" onclick="switchTab('history')">📁 히스토리</button>
+  </nav>
+
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard" class="tab-panel active">
+
+    <div id="missingAlert" class="missing-alert" style="display:none">
+      <div class="missing-icon">⚠</div>
+      <div id="missingText"></div>
+    </div>
+
+    <!-- 스트릭 + stat 6개 -->
+    <div style="display:flex;align-items:stretch;gap:0.75rem;margin-bottom:0.75rem">
+      <div class="card" style="padding:0.875rem;text-align:center;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;min-width:64px">
+        <div id="streakCount" style="font-family:var(--font-display);font-size:2.6rem;color:var(--accent);line-height:1">0</div>
+        <div style="font-size:0.55rem;color:var(--muted);letter-spacing:0.07em;margin-top:3px">DAYS</div>
+      </div>
+      <div class="stat-grid" id="statGrid" style="flex:1;margin:0"></div>
+    </div>
+
+    <!-- 달력 -->
+    <div class="card" style="padding:0.875rem;margin-bottom:0.75rem">
+      <div class="calendar-wrap">
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+    </div>
+
+    <!-- 통합 단일 차트 -->
+    <div class="card" style="padding-bottom:1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.06em">이달 통합 지표</div>
+        <div style="font-size:0.65rem;color:var(--muted)">항목 탭하면 켜기/끄기</div>
+      </div>
+      <!-- 커스텀 토글 레전드 -->
+      <div id="toggleLegend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.875rem"></div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="mainChart" role="img" aria-label="전체 피트니스 통합 차트">체중, 근육, 체지방, 칼로리, 단백질, 운동, 수면, 스트레스 데이터</canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INPUT TAB -->
+  <div id="tab-input" class="tab-panel">
+    <div class="date-row">
+      <button class="btn-date-nav" onclick="changeInputDate(-1)">← 이전</button>
+      <div class="date-display" id="inputDateDisplay"></div>
+      <button class="btn-date-nav" onclick="changeInputDate(1)">다음 →</button>
+    </div>
+
+    <div id="inputExistsBadge" style="margin-bottom:1rem;display:none">
+      <span class="badge badge-green">✓ 기록 있음</span>
+    </div>
+
+    <!-- Exercise -->
+    <div class="card">
+      <div class="form-section-title">🏋️ 운동 / 활동</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>웨이트 운동 <span>분</span></label>
+          <input class="form-input" type="number" id="f_workout" placeholder="0" min="0" inputmode="numeric">
+        </div>
+        <div class="form-group">
+          <label>걸음 수 <span>steps</span></label>
+          <input class="form-input" type="number" id="f_steps" placeholder="0" min="0" inputmode="numeric">
+        </div>
+      </div>
+    </div>
+
+    <!-- Nutrition -->
+    <div class="card">
+      <div class="form-section-title">🥗 영양</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>수분 섭취 <span>L</span></label>
+          <input class="form-input" type="number" id="f_water" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>총 칼로리 <span>kcal</span></label>
+          <input class="form-input" type="number" id="f_calories" placeholder="0" min="0" inputmode="numeric">
+        </div>
+        <div class="form-group">
+          <label>총 단백질 <span>g</span></label>
+          <input class="form-input" type="number" id="f_protein" placeholder="0" min="0" inputmode="numeric">
+        </div>
+      </div>
+    </div>
+
+    <!-- Lifestyle -->
+    <div class="card">
+      <div class="form-section-title">🌙 생활</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>수면량 <span>시간</span></label>
+          <input class="form-input" type="number" id="f_sleep" placeholder="0.0" step="0.5" min="0" max="24" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>음주 <span>병 단위</span></label>
+          <input class="form-input" type="number" id="f_alcohol" placeholder="0" min="0" step="0.5" inputmode="decimal">
+        </div>
+        <div class="form-group full">
+          <label>스트레스 / 기분 <span id="moodLabel">5 / 10</span></label>
+          <div class="mood-row">
+            <span style="font-size:0.75rem;color:var(--muted)">😣 1</span>
+            <input class="mood-slider" type="range" id="f_stress" min="1" max="10" value="5" step="1" oninput="updateMoodLabel(this.value)">
+            <span style="font-size:0.75rem;color:var(--muted)">10 😊</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- InBody -->
+    <div class="card">
+      <div class="form-section-title">⚖️ 인바디</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>체중 <span>kg</span></label>
+          <input class="form-input" type="number" id="f_weight" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>골격근량 <span>kg</span></label>
+          <input class="form-input" type="number" id="f_muscle" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>체지방량 <span>kg</span></label>
+          <input class="form-input" type="number" id="f_fat" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-save" onclick="saveDay()">💾 저장하기</button>
+
+    <!-- 데이터 삭제 -->
+    <div class="card" style="margin-top:1rem;border-color:rgba(255,77,109,0.2)">
+      <div class="form-section-title" style="color:var(--red)">🗑 데이터 삭제</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.875rem">특정 날짜 또는 기간의 기록을 삭제합니다.</div>
+
+      <!-- 단일 날짜 삭제 -->
+      <div style="margin-bottom:1rem">
+        <div style="font-size:0.7rem;color:var(--text2);margin-bottom:0.5rem">단일 날짜 삭제</div>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <input class="form-input" type="date" id="deleteDate" style="flex:1">
+          <button onclick="deleteSingleDay()" style="
+            background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.4);
+            border-radius:var(--radius-sm);padding:0.65rem 0.875rem;
+            color:var(--red);font-size:0.8rem;flex-shrink:0;
+            -webkit-tap-highlight-color:transparent;
+          ">삭제</button>
+        </div>
+      </div>
+
+      <!-- 기간 삭제 -->
+      <div>
+        <div style="font-size:0.7rem;color:var(--text2);margin-bottom:0.5rem">기간 삭제</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem">
+          <div>
+            <div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.25rem">시작일</div>
+            <input class="form-input" type="date" id="deleteFrom">
+          </div>
+          <div>
+            <div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.25rem">종료일</div>
+            <input class="form-input" type="date" id="deleteTo">
+          </div>
+        </div>
+        <button onclick="deleteRange()" style="
+          width:100%;background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);
+          border-radius:var(--radius-sm);padding:0.65rem;
+          color:var(--red);font-size:0.8rem;
+          -webkit-tap-highlight-color:transparent;
+        ">기간 삭제</button>
+      </div>
+
+      <!-- 이달 전체 삭제 -->
+      <div style="margin-top:0.875rem;padding-top:0.875rem;border-top:1px solid rgba(255,77,109,0.15)">
+        <button onclick="deleteAllMonth()" style="
+          width:100%;background:transparent;border:1px dashed rgba(255,77,109,0.25);
+          border-radius:var(--radius-sm);padding:0.65rem;
+          color:rgba(255,77,109,0.6);font-size:0.75rem;
+          -webkit-tap-highlight-color:transparent;
+        ">이달 전체 기록 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <div class="sec-head" style="margin:0">월별 평균 히스토리</div>
+      <div style="font-size:0.65rem;color:var(--muted)">매월 말 자동 저장</div>
+    </div>
+
+    <!-- 연간 통합 차트 (대시보드와 동일 방식) -->
+    <div class="card" style="padding-bottom:1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+        <div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.06em">1월 ~ 12월 월별 평균</div>
+        <div style="font-size:0.65rem;color:var(--muted)">항목 탭하면 켜기/끄기</div>
+      </div>
+      <div id="historyToggleLegend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.875rem"></div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="historyChart" role="img" aria-label="월별 평균 통합 히스토리 차트">월별 평균 데이터</canvas>
+      </div>
+    </div>
+
+    <!-- 월별 카드 (1월~12월) -->
+    <div id="historyMonthCards"></div>
+  </div>
+
+</div><!-- /appScreen -->
+
+<!-- BOTTOM TOOLBAR (app only) -->
+<div class="bottom-toolbar" id="bottomToolbar" style="display:none">
+  <button class="btn-secondary" onclick="exportData()">⬇ JSON 내보내기</button>
+  <button class="btn-secondary" onclick="document.getElementById('importFile').click()">⬆ JSON 가져오기</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SAFE STORAGE (iOS Safari file:// fallback)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const _memStore = {};
+const store = {
+  getItem(k) {
+    try { return localStorage.getItem(k); } catch(e) { return _memStore[k] ?? null; }
+  },
+  setItem(k, v) {
+    try { localStorage.setItem(k, v); } catch(e) { _memStore[k] = v; }
+  },
+  removeItem(k) {
+    try { localStorage.removeItem(k); } catch(e) { delete _memStore[k]; }
+  }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let currentUser = null;
+let inputDate = todayStr();
+const charts = {};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UTILS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function userKey(suffix) { return `fp_${currentUser}_${suffix}`; }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 2200);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LOGIN BG ANIMATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(function initLoginBg() {
+  const bg = document.getElementById('loginBg');
+  for (let i = 0; i < 8; i++) {
+    const l = document.createElement('div');
+    l.className = 'login-bg-line';
+    l.style.left = (Math.random() * 100) + '%';
+    l.style.height = (Math.random() * 40 + 20) + '%';
+    l.style.animationDelay = (Math.random() * 4) + 's';
+    l.style.animationDuration = (Math.random() * 3 + 3) + 's';
+    bg.appendChild(l);
+  }
+})();
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AUTH
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function doLogin() {
+  const name = document.getElementById('loginName').value.trim();
+  const birth = document.getElementById('loginBirth').value.trim();
+  if (!name) { showToast('이름을 입력하세요', 'error'); return; }
+  if (!/^\d{6}$/.test(birth)) { showToast('생년월일 6자리를 정확히 입력하세요', 'error'); return; }
+  currentUser = name + '_' + birth;
+  store.setItem('fp_lastUser', currentUser);
+  startApp(name);
+}
+function doLogout() {
+  currentUser = null;
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('bottomToolbar').style.display = 'none';
+  document.getElementById('loginName').value = '';
+  document.getElementById('loginBirth').value = '';
+}
+function startApp(displayName) {
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  document.getElementById('bottomToolbar').style.display = 'flex';
+  document.getElementById('headerUserName').textContent = displayName + ' 님';
+  inputDate = todayStr();
+  checkArchive();
+  renderAll();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DATA ACCESS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getMonthData() {
+  return JSON.parse(store.getItem(userKey('month')) || '{}');
+}
+function saveMonthData(d) {
+  store.setItem(userKey('month'), JSON.stringify(d));
+}
+function getHistoryData() {
+  return JSON.parse(store.getItem(userKey('history')) || '{}');
+}
+function saveHistoryData(d) {
+  store.setItem(userKey('history'), JSON.stringify(d));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ARCHIVE LOGIC
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function checkArchive() {
+  const now = new Date();
+  const lastArchive = store.getItem(userKey('lastArchive'));
+  const thisMonth = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+
+  // New year reset
+  const lastYearReset = store.getItem(userKey('lastYearReset'));
+  const thisYear = String(now.getFullYear());
+  if (lastYearReset !== thisYear && now.getMonth() === 0 && now.getDate() === 1) {
+    saveHistoryData({});
+    store.setItem(userKey('lastYearReset'), thisYear);
+  }
+
+  // Monthly archive (if stored data is from last month)
+  const monthData = getMonthData();
+  const keys = Object.keys(monthData);
+  if (keys.length === 0) return;
+  const firstKey = keys[0];
+  const dataMonth = firstKey.substring(0, 7);
+  if (dataMonth !== thisMonth && lastArchive !== dataMonth) {
+    archiveMonth(dataMonth, monthData);
+    saveMonthData({});
+    store.setItem(userKey('lastArchive'), dataMonth);
+  }
+}
+function archiveMonth(monthStr, data) {
+  const history = getHistoryData();
+  const fields = ['weight','muscle','fat','calories','protein','water','workout','steps','sleep','alcohol','stress'];
+  const avgs = {};
+  fields.forEach(f => {
+    const vals = Object.values(data).map(d => d[f]).filter(v => v !== undefined && v !== '' && v !== null);
+    avgs[f] = vals.length ? parseFloat((vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(2)) : null;
+  });
+  avgs.days = Object.keys(data).length;
+  history[monthStr] = avgs;
+  saveHistoryData(history);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SAVE DAY
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function saveDay() {
+  const d = getMonthData();
+  const entry = {
+    workout: parseFloatOrNull(document.getElementById('f_workout').value),
+    steps: parseFloatOrNull(document.getElementById('f_steps').value),
+    water: parseFloatOrNull(document.getElementById('f_water').value),
+    calories: parseFloatOrNull(document.getElementById('f_calories').value),
+    protein: parseFloatOrNull(document.getElementById('f_protein').value),
+    sleep: parseFloatOrNull(document.getElementById('f_sleep').value),
+    alcohol: parseFloatOrNull(document.getElementById('f_alcohol').value),
+    stress: parseInt(document.getElementById('f_stress').value),
+    weight: parseFloatOrNull(document.getElementById('f_weight').value),
+    muscle: parseFloatOrNull(document.getElementById('f_muscle').value),
+    fat: parseFloatOrNull(document.getElementById('f_fat').value),
+    ts: Date.now()
+  };
+  d[inputDate] = entry;
+  saveMonthData(d);
+  showToast('저장 완료! 💪', 'success');
+  renderAll();
+}
+function parseFloatOrNull(v) {
+  const f = parseFloat(v);
+  return isNaN(f) ? null : f;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INPUT DATE NAV
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function changeInputDate(delta) {
+  const d = new Date(inputDate);
+  d.setDate(d.getDate() + delta);
+  inputDate = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  loadInputForm();
+}
+function loadInputForm() {
+  document.getElementById('inputDateDisplay').textContent = inputDate;
+  const d = getMonthData();
+  const entry = d[inputDate];
+  const badge = document.getElementById('inputExistsBadge');
+  if (entry) {
+    badge.style.display = 'block';
+    document.getElementById('f_workout').value = entry.workout ?? '';
+    document.getElementById('f_steps').value = entry.steps ?? '';
+    document.getElementById('f_water').value = entry.water ?? '';
+    document.getElementById('f_calories').value = entry.calories ?? '';
+    document.getElementById('f_protein').value = entry.protein ?? '';
+    document.getElementById('f_sleep').value = entry.sleep ?? '';
+    document.getElementById('f_alcohol').value = entry.alcohol ?? '';
+    document.getElementById('f_stress').value = entry.stress ?? 5;
+    document.getElementById('f_weight').value = entry.weight ?? '';
+    document.getElementById('f_muscle').value = entry.muscle ?? '';
+    document.getElementById('f_fat').value = entry.fat ?? '';
+    updateMoodLabel(entry.stress ?? 5);
+  } else {
+    badge.style.display = 'none';
+    ['f_workout','f_steps','f_water','f_calories','f_protein','f_sleep','f_alcohol','f_weight','f_muscle','f_fat'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('f_stress').value = 5;
+    updateMoodLabel(5);
+  }
+}
+function updateMoodLabel(v) {
+  document.getElementById('moodLabel').textContent = v + ' / 10';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER ALL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderAll() {
+  loadInputForm();
+  renderDashboard();
+  renderHistory();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DASHBOARD — 단일 통합 차트
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let _dashData = {};
+
+// 각 데이터셋 정의: 단위가 달라서 정규화(0~1)해서 오른쪽 y축에 표시
+// 체중/근육/체지방 → 왼쪽 y(kg), 나머지 → 정규화된 오른쪽 y
+const DS_DEFS = [
+  { key:'weight',   label:'체중',    color:'#c8f135', dash:[],    axis:'yKg',   unit:'kg',   norm:false },
+  { key:'muscle',   label:'근육량',  color:'#36d6ff', dash:[5,3], axis:'yKg',   unit:'kg',   norm:false },
+  { key:'fat',      label:'체지방',  color:'#ff4d6d', dash:[2,3], axis:'yKg',   unit:'kg',   norm:false },
+  { key:'calories', label:'칼로리',  color:'#ffb347', dash:[6,3], axis:'yNorm', unit:'kcal', norm:true, scale:2500 },
+  { key:'protein',  label:'단백질',  color:'#8bff6b', dash:[3,3], axis:'yNorm', unit:'g',    norm:true, scale:200  },
+  { key:'workout',  label:'운동',    color:'#c084fc', dash:[4,2], axis:'yNorm', unit:'분',   norm:true, scale:120  },
+  { key:'steps',    label:'걸음수',  color:'#fb923c', dash:[2,4], axis:'yNorm', unit:'k보',  norm:true, scale:15000},
+  { key:'sleep',    label:'수면',    color:'#67e8f9', dash:[5,2], axis:'yNorm', unit:'h',    norm:true, scale:12   },
+  { key:'stress',   label:'스트레스',color:'#f472b6', dash:[3,2], axis:'yNorm', unit:'/10',  norm:true, scale:10   },
+];
+
+// 토글 상태 (기본: 체중·근육·체지방·칼로리·단백질 ON, 나머지 OFF)
+let _dsVisible = { weight:true, muscle:true, fat:true, calories:true, protein:true, workout:false, steps:false, sleep:false, stress:false };
+
+function renderDashboard() {
+  const data = getMonthData();
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = todayStr();
+  const monthPrefix = `${year}-${pad(month+1)}`;
+  const entries = Object.entries(data)
+    .filter(([k]) => k.startsWith(monthPrefix))
+    .sort(([a],[b]) => a.localeCompare(b));
+
+  const vals = (field) => entries.map(([,v]) => v[field]).filter(v => v !== null && v !== undefined);
+  const avg = (arr) => arr.length ? (arr.reduce((a,b)=>a+parseFloat(b),0)/arr.length) : null;
+  const last = (field) => {
+    for (let i=entries.length-1;i>=0;i--) {
+      if (entries[i][1][field]!==null&&entries[i][1][field]!==undefined) return entries[i][1][field];
+    }
+    return null;
+  };
+  const getVal = (field, day) => {
+    const key = `${year}-${pad(month+1)}-${pad(day)}`;
+    return data[key]?.[field]??null;
+  };
+
+  _dashData = { data, year, month, daysInMonth, entries, vals, avg, last, getVal };
+
+  // Missing alert
+  const todayEntry = data[today];
+  const allFields = ['workout','steps','water','calories','protein','sleep','weight','muscle','fat'];
+  const alertEl = document.getElementById('missingAlert');
+  if (todayEntry) {
+    const missing = allFields.filter(f=>todayEntry[f]===null||todayEntry[f]===undefined);
+    if (missing.length>0) {
+      const fn={workout:'운동',steps:'걸음수',water:'수분',calories:'칼로리',protein:'단백질',sleep:'수면',weight:'체중',muscle:'근육량',fat:'체지방'};
+      document.getElementById('missingText').textContent=`오늘 미입력: ${missing.map(f=>fn[f]).join(', ')}`;
+      alertEl.style.display='flex';
+    } else { alertEl.style.display='none'; }
+  } else {
+    alertEl.style.display='flex';
+    document.getElementById('missingText').textContent='오늘 기록이 없습니다. ✏️ 오늘 기록 탭에서 입력해 주세요!';
+  }
+
+  // Streak
+  document.getElementById('streakCount').textContent = entries.length;
+
+  // Stat 카드 (6개 고정)
+  const statDefs = [
+    { val: last('weight')?.toFixed(1),              lbl:'체중',    unit:'kg'   },
+    { val: last('muscle')?.toFixed(1),              lbl:'근육량',  unit:'kg'   },
+    { val: last('fat')?.toFixed(1),                 lbl:'체지방',  unit:'kg'   },
+    { val: avg(vals('calories'))?.toFixed(0),       lbl:'평균칼로리',unit:'kcal'},
+    { val: avg(vals('protein'))?.toFixed(0),        lbl:'평균단백',unit:'g'    },
+    { val: avg(vals('sleep'))?.toFixed(1),          lbl:'평균수면',unit:'h'    },
+  ];
+  document.getElementById('statGrid').innerHTML = statDefs.map(s=>
+    `<div class="stat-card">
+      <div class="stat-val" style="font-size:1.05rem">${s.val??'--'}</div>
+      <div class="stat-lbl">${s.lbl}<br><span style="color:var(--accent);font-size:0.55rem">${s.unit}</span></div>
+    </div>`
+  ).join('');
+
+  // Calendar
+  renderCalendar(data, year, month, daysInMonth);
+
+  // Build unified chart
+  buildUnifiedChart();
+}
+
+function buildUnifiedChart() {
+  if (!_dashData.getVal) return;
+  const { year, month, daysInMonth, getVal } = _dashData;
+  const labels = Array.from({length:daysInMonth},(_,i)=>`${i+1}`);
+
+  // Build datasets — visible ones only for rendering, but create all for toggle
+  const datasets = DS_DEFS.map(def => {
+    const rawData = labels.map((_,i) => {
+      const v = getVal(def.key, i+1);
+      if (v === null) return null;
+      return def.norm ? parseFloat((v / def.scale).toFixed(4)) : parseFloat(v);
+    });
+    return {
+      label: def.label,
+      data: rawData,
+      borderColor: def.color,
+      backgroundColor: def.key==='weight' ? 'rgba(200,241,53,0.05)' : 'transparent',
+      borderDash: def.dash,
+      yAxisID: def.axis,
+      tension: 0.35,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      spanGaps: false,
+      fill: def.key==='weight',
+      hidden: !_dsVisible[def.key],
+      borderWidth: 2,
+    };
+  });
+
+  destroyChart('mainChart');
+  charts['mainChart'] = new Chart(document.getElementById('mainChart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:'#18181d', titleColor:'#f0f0f8', bodyColor:'#9898a8',
+          borderColor:'#2c2c34', borderWidth:1,
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.raw===null) return null;
+              const def = DS_DEFS.find(d=>d.label===ctx.dataset.label);
+              if (!def) return ctx.dataset.label+': '+ctx.raw;
+              const real = def.norm ? (ctx.raw * def.scale) : ctx.raw;
+              const disp = def.key==='steps' ? Math.round(real).toLocaleString() : parseFloat(real.toFixed(1));
+              return `${def.label}: ${disp} ${def.unit}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color:'#5a5a6e', font:{size:10}, autoSkip:true, maxTicksLimit:12, maxRotation:0 },
+          grid: { color:'rgba(255,255,255,0.04)' }
+        },
+        yKg: {
+          position: 'left',
+          ticks: { color:'#5a5a6e', font:{size:10}, callback: v => v+'kg' },
+          grid: { color:'rgba(255,255,255,0.05)' },
+          title: { display:true, text:'kg', color:'#5a5a6e', font:{size:9} }
+        },
+        yNorm: {
+          position: 'right',
+          min: 0, max: 1.2,
+          ticks: { display: false },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // Build toggle legend
+  buildToggleLegend();
+}
+
+function buildToggleLegend() {
+  const legend = document.getElementById('toggleLegend');
+  legend.innerHTML = DS_DEFS.map(def => {
+    const on = _dsVisible[def.key];
+    return `<button onclick="toggleDataset('${def.key}')" style="
+      display:inline-flex;align-items:center;gap:5px;
+      background:${on ? def.color+'22' : 'transparent'};
+      border:1px solid ${on ? def.color : 'rgba(255,255,255,0.12)'};
+      border-radius:20px;padding:4px 10px;
+      color:${on ? def.color : '#5a5a6e'};font-size:0.7rem;
+      cursor:pointer;transition:all 0.15s;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    ">
+      <span style="display:inline-block;width:20px;height:2px;background:${on?def.color:'rgba(255,255,255,0.15)'};border-radius:2px;flex-shrink:0"></span>
+      ${def.label}
+      <span style="font-size:0.6rem;opacity:0.7">${def.unit}</span>
+    </button>`;
+  }).join('');
+}
+
+function toggleDataset(key) {
+  _dsVisible[key] = !_dsVisible[key];
+  const chart = charts['mainChart'];
+  if (chart) {
+    const idx = DS_DEFS.findIndex(d=>d.key===key);
+    if (idx !== -1) {
+      const meta = chart.getDatasetMeta(idx);
+      meta.hidden = !_dsVisible[key];
+      chart.update();
+    }
+  }
+  buildToggleLegend();
+}
+
+function renderStatGrid(statDefs) {
+  document.getElementById('statGrid').innerHTML = statDefs.map(s=>
+    `<div class="stat-card">
+      <div class="stat-val">${s.val!==null&&s.val!==undefined?s.val:'--'}</div>
+      <div class="stat-lbl">${s.lbl}<br><span style="color:var(--accent);font-size:0.6rem">${s.unit}</span></div>
+    </div>`
+  ).join('');
+}
+
+function renderCalendar(data, year, month, daysInMonth) {
+  const grid = document.getElementById('calendarGrid');
+  const today = todayStr();
+  const allFields = ['workout','steps','water','calories','protein','sleep','weight','muscle','fat'];
+
+  grid.innerHTML = '';
+  const days = ['일','월','화','수','목','금','토'];
+  days.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-header'; el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  for (let i = 0; i < firstDay; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${year}-${pad(month+1)}-${pad(d)}`;
+    const entry = data[key];
+    const el = document.createElement('div');
+    const isPast = key <= today;
+    el.textContent = d;
+
+    if (!isPast) {
+      el.className = 'cal-day future';
+    } else if (!entry) {
+      el.className = 'cal-day no-data';
+    } else {
+      const filled = allFields.filter(f => entry[f] !== null && entry[f] !== undefined).length;
+      el.className = filled >= 7 ? 'cal-day full' : 'cal-day partial';
+      if (filled >= 7) { const dot = document.createElement('div'); dot.className = 'cal-dot'; el.appendChild(dot); }
+    }
+    if (key === today) el.classList.add('today');
+    grid.appendChild(el);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HISTORY — 월별 평균, 동일 통합차트 방식
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let _histVisible = { weight:true, muscle:true, fat:true, calories:true, protein:true, workout:false, steps:false, sleep:false, stress:false };
+
+const MONTH_LABELS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+// 이달 실시간 평균 계산
+function calcLiveMonthAvg(monthPrefix) {
+  const data = getMonthData();
+  const entries = Object.entries(data).filter(([k]) => k.startsWith(monthPrefix)).map(([,v]) => v);
+  if (entries.length === 0) return null;
+  const fields = ['weight','muscle','fat','calories','protein','water','workout','steps','sleep','alcohol','stress'];
+  const avgs = {};
+  fields.forEach(f => {
+    const vals = entries.map(e => e[f]).filter(v => v !== null && v !== undefined);
+    avgs[f] = vals.length ? parseFloat((vals.reduce((a,b) => a + parseFloat(b), 0) / vals.length).toFixed(2)) : null;
+  });
+  avgs.days = entries.length;
+  avgs._live = true; // 진행중 표시용
+  return avgs;
+}
+
+function renderHistory() {
+  const history = getHistoryData();
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonthIdx = now.getMonth(); // 0-based
+
+  // 12개월 슬롯: 아카이브된 달은 history 사용, 이달은 실시간 계산, 미래는 null
+  const monthKeys = Array.from({length:12}, (_,i) => `${thisYear}-${pad(i+1)}`);
+  const monthData = monthKeys.map((k, i) => {
+    if (i < thisMonthIdx) return history[k] || null;           // 지난 달: 아카이브
+    if (i === thisMonthIdx) return calcLiveMonthAvg(k);        // 이달: 실시간
+    return null;                                                // 미래: 없음
+  });
+
+  buildHistoryChart(monthData);
+  buildHistoryCards(monthData, monthKeys, thisMonthIdx);
+}
+
+function buildHistoryChart(monthData) {
+  const labels = MONTH_LABELS;
+
+  const DS = DS_DEFS.map(def => {
+    const rawData = monthData.map(m => {
+      if (!m || m[def.key] === null || m[def.key] === undefined) return null;
+      const v = parseFloat(m[def.key]);
+      return def.norm ? parseFloat((v / def.scale).toFixed(4)) : v;
+    });
+    return {
+      label: def.label,
+      data: rawData,
+      borderColor: def.color,
+      backgroundColor: def.key==='weight' ? 'rgba(200,241,53,0.05)' : 'transparent',
+      borderDash: def.dash,
+      yAxisID: def.axis,
+      tension: 0.35,
+      pointRadius: (ctx) => {
+        // 이달(현재 진행중) 포인트를 더 크게
+        const now = new Date();
+        return ctx.dataIndex === now.getMonth() ? 7 : 4;
+      },
+      pointStyle: (ctx) => {
+        const now = new Date();
+        return ctx.dataIndex === now.getMonth() ? 'circle' : 'circle';
+      },
+      pointBorderWidth: (ctx) => {
+        const now = new Date();
+        return ctx.dataIndex === now.getMonth() ? 2 : 1;
+      },
+      pointBorderColor: (ctx) => {
+        const now = new Date();
+        if (ctx.dataIndex !== now.getMonth()) return 'transparent';
+        const def2 = DS_DEFS.find(d=>d.label===ctx.dataset.label);
+        return def2 ? def2.color : '#fff';
+      },
+      pointBackgroundColor: (ctx) => {
+        const now = new Date();
+        if (ctx.dataIndex !== now.getMonth()) return ctx.dataset.borderColor;
+        return '#0a0a0c'; // 이달 포인트 빈 원(도넛)으로 강조
+      },
+      pointHoverRadius: 8,
+      spanGaps: true,
+      fill: def.key==='weight',
+      hidden: !_histVisible[def.key],
+      borderWidth: 2,
+    };
+  });
+
+  destroyChart('historyChart');
+  charts['historyChart'] = new Chart(document.getElementById('historyChart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: DS },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:'#18181d', titleColor:'#f0f0f8', bodyColor:'#9898a8',
+          borderColor:'#2c2c34', borderWidth:1,
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.raw === null) return null;
+              const def = DS_DEFS.find(d=>d.label===ctx.dataset.label);
+              if (!def) return ctx.dataset.label+': '+ctx.raw;
+              const real = def.norm ? (ctx.raw * def.scale) : ctx.raw;
+              const disp = def.key==='steps' ? Math.round(real).toLocaleString() : parseFloat(real.toFixed(1));
+              return `${def.label}: ${disp} ${def.unit}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks:{color:'#5a5a6e',font:{size:11}}, grid:{color:'rgba(255,255,255,0.04)'} },
+        yKg: { position:'left', ticks:{color:'#5a5a6e',font:{size:10},callback:v=>v+'kg'}, grid:{color:'rgba(255,255,255,0.05)'} },
+        yNorm: { position:'right', min:0, max:1.2, ticks:{display:false}, grid:{display:false} }
+      }
+    }
+  });
+
+  // 토글 레전드
+  const legend = document.getElementById('historyToggleLegend');
+  legend.innerHTML = DS_DEFS.map(def => {
+    const on = _histVisible[def.key];
+    return `<button onclick="toggleHistoryDs('${def.key}')" style="
+      display:inline-flex;align-items:center;gap:5px;
+      background:${on ? def.color+'22' : 'transparent'};
+      border:1px solid ${on ? def.color : 'rgba(255,255,255,0.12)'};
+      border-radius:20px;padding:4px 10px;
+      color:${on ? def.color : '#5a5a6e'};font-size:0.7rem;
+      cursor:pointer;transition:all 0.15s;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    ">
+      <span style="display:inline-block;width:20px;height:2px;background:${on?def.color:'rgba(255,255,255,0.15)'};border-radius:2px;flex-shrink:0"></span>
+      ${def.label}
+      <span style="font-size:0.6rem;opacity:0.7">${def.unit}</span>
+    </button>`;
+  }).join('');
+}
+
+function toggleHistoryDs(key) {
+  _histVisible[key] = !_histVisible[key];
+  const chart = charts['historyChart'];
+  if (chart) {
+    const idx = DS_DEFS.findIndex(d=>d.key===key);
+    if (idx !== -1) { chart.getDatasetMeta(idx).hidden = !_histVisible[key]; chart.update(); }
+  }
+  // re-render legend only
+  const legend = document.getElementById('historyToggleLegend');
+  legend.innerHTML = DS_DEFS.map(def => {
+    const on = _histVisible[def.key];
+    return `<button onclick="toggleHistoryDs('${def.key}')" style="
+      display:inline-flex;align-items:center;gap:5px;
+      background:${on ? def.color+'22' : 'transparent'};
+      border:1px solid ${on ? def.color : 'rgba(255,255,255,0.12)'};
+      border-radius:20px;padding:4px 10px;
+      color:${on ? def.color : '#5a5a6e'};font-size:0.7rem;
+      cursor:pointer;transition:all 0.15s;
+      -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+    ">
+      <span style="display:inline-block;width:20px;height:2px;background:${on?def.color:'rgba(255,255,255,0.15)'};border-radius:2px;flex-shrink:0"></span>
+      ${def.label}
+      <span style="font-size:0.6rem;opacity:0.7">${def.unit}</span>
+    </button>`;
+  }).join('');
+}
+
+function buildHistoryCards(monthData, monthKeys, thisMonthIdx) {
+  const wrap = document.getElementById('historyMonthCards');
+  // 이달 포함 데이터 있는지 확인
+  const hasAny = monthData.some(m => m !== null);
+  if (!hasAny) {
+    wrap.innerHTML = `<div class="no-data-msg" style="padding:2rem;text-align:center;color:var(--muted);font-size:0.85rem">
+      아직 기록된 데이터가 없습니다.<br>
+      <span style="font-size:0.75rem;opacity:0.7">오늘 기록 탭에서 데이터를 입력해 주세요</span>
+    </div>`;
+    return;
+  }
+
+  const fieldDefs = [
+    { key:'weight',   label:'체중',    unit:'kg',   color:'#c8f135' },
+    { key:'muscle',   label:'근육량',  unit:'kg',   color:'#36d6ff' },
+    { key:'fat',      label:'체지방',  unit:'kg',   color:'#ff4d6d' },
+    { key:'calories', label:'칼로리',  unit:'kcal', color:'#ffb347' },
+    { key:'protein',  label:'단백질',  unit:'g',    color:'#8bff6b' },
+    { key:'sleep',    label:'수면',    unit:'h',    color:'#67e8f9' },
+    { key:'workout',  label:'운동',    unit:'분',   color:'#c084fc' },
+    { key:'stress',   label:'스트레스',unit:'/10',  color:'#f472b6' },
+    { key:'days',     label:'기록일수',unit:'일',   color:'#9898a8' },
+  ];
+
+  // 이달부터 역순 정렬 (이달 → 1월)
+  const indices = Array.from({length:12},(_,i)=>i).sort((a,b)=>b-a);
+
+  wrap.innerHTML = indices.map(i => {
+    const m = monthData[i];
+    const isThisMonth = (i === thisMonthIdx);
+    const isFuture = (i > thisMonthIdx);
+
+    // 미래 달 — 숨김
+    if (isFuture) return '';
+
+    // 데이터 없는 지난 달
+    if (!m) return `
+      <div class="card" style="margin-bottom:0.75rem;opacity:0.25">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-family:var(--font-display);font-size:1.2rem;color:var(--muted)">${MONTH_LABELS[i]}</div>
+          <div style="font-size:0.7rem;color:var(--muted)">기록 없음</div>
+        </div>
+      </div>`;
+
+    // 이달 진행중 배지
+    const badge = isThisMonth
+      ? `<div style="display:flex;align-items:center;gap:6px">
+           <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite"></span>
+           <span style="font-size:0.65rem;color:var(--accent)">진행중 · ${m.days}일 기록</span>
+         </div>`
+      : `<div style="font-size:0.65rem;color:var(--muted)">${m.days}일 기록</div>`;
+
+    const cardBorder = isThisMonth ? 'border-color:rgba(200,241,53,0.3)' : '';
+
+    const statItems = fieldDefs.map(f => {
+      const v = m[f.key];
+      const disp = v !== null && v !== undefined
+        ? (f.key==='steps' ? Math.round(v).toLocaleString() : parseFloat(parseFloat(v).toFixed(1)))
+        : '--';
+      return `<div style="text-align:center;padding:0.4rem 0">
+        <div style="font-family:var(--font-mono);font-size:0.88rem;color:${v!==null&&v!==undefined?f.color:'var(--muted)'};font-weight:500">${disp}</div>
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:2px;line-height:1.3">${f.label}<br><span style="color:${f.color};opacity:0.7">${f.unit}</span></div>
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="card" style="margin-bottom:0.75rem;${cardBorder}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.875rem">
+          <div style="font-family:var(--font-display);font-size:1.4rem;color:${isThisMonth?'var(--accent)':'var(--text0)'};letter-spacing:0.05em">${MONTH_LABELS[i]}</div>
+          ${badge}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem">
+          ${statItems}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CHART HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TAB SWITCHING
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+
+  if (tab === 'history') renderHistory();
+  if (tab === 'input') { loadInputForm(); setDeleteDefaults(); }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// IMPORT / EXPORT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function exportData() {
+  const payload = {
+    user: currentUser,
+    exportedAt: new Date().toISOString(),
+    month: getMonthData(),
+    history: getHistoryData()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `fitprocess_${currentUser}_${todayStr()}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('내보내기 완료!', 'success');
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.month) saveMonthData(payload.month);
+      if (payload.history) saveHistoryData(payload.history);
+      renderAll();
+      showToast('가져오기 완료!', 'success');
+    } catch {
+      showToast('파일 형식 오류', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DELETE FUNCTIONS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function deleteSingleDay() {
+  const date = document.getElementById('deleteDate').value;
+  if (!date) { showToast('삭제할 날짜를 선택하세요', 'error'); return; }
+  const d = getMonthData();
+  if (!d[date]) { showToast('해당 날짜에 기록이 없습니다', 'error'); return; }
+  if (!confirm(`${date} 기록을 삭제할까요?`)) return;
+  delete d[date];
+  saveMonthData(d);
+  showToast(`${date} 기록 삭제 완료`, 'success');
+  renderAll();
+}
+
+function deleteRange() {
+  const from = document.getElementById('deleteFrom').value;
+  const to = document.getElementById('deleteTo').value;
+  if (!from || !to) { showToast('시작일과 종료일을 모두 선택하세요', 'error'); return; }
+  if (from > to) { showToast('시작일이 종료일보다 늦습니다', 'error'); return; }
+  const d = getMonthData();
+  const keys = Object.keys(d).filter(k => k >= from && k <= to);
+  if (keys.length === 0) { showToast('해당 기간에 기록이 없습니다', 'error'); return; }
+  if (!confirm(`${from} ~ ${to} (총 ${keys.length}일) 기록을 삭제할까요?`)) return;
+  keys.forEach(k => delete d[k]);
+  saveMonthData(d);
+  showToast(`${keys.length}일치 기록 삭제 완료`, 'success');
+  renderAll();
+}
+
+function deleteAllMonth() {
+  const now = new Date();
+  const prefix = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+  const d = getMonthData();
+  const keys = Object.keys(d).filter(k => k.startsWith(prefix));
+  if (keys.length === 0) { showToast('이달 기록이 없습니다', 'error'); return; }
+  if (!confirm(`이달(${prefix}) 전체 ${keys.length}일 기록을 삭제할까요?
+이 작업은 되돌릴 수 없습니다.`)) return;
+  keys.forEach(k => delete d[k]);
+  saveMonthData(d);
+  showToast('이달 전체 기록 삭제 완료', 'success');
+  renderAll();
+}
+
+function setDeleteDefaults() {
+  const t = todayStr();
+  const sd = document.getElementById('deleteDate');
+  const sf = document.getElementById('deleteFrom');
+  const st = document.getElementById('deleteTo');
+  if(sd) sd.value = t;
+  if(sf) sf.value = t;
+  if(st) st.value = t;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// KEYBOARD
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document.getElementById('loginBirth').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBirth').focus(); });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AUTO-LOGIN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(function autoLogin() {
+  const last = store.getItem('fp_lastUser');
+  if (last) {
+    const parts = last.split('_');
+    if (parts.length >= 2) {
+      const birth = parts[parts.length - 1];
+      const name = parts.slice(0, -1).join('_');
+      currentUser = last;
+      startApp(name);
+    }
+  }
+})();
+</script>
+</body>
+</html>
